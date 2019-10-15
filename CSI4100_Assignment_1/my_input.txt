@@ -1,0 +1,3 @@
+float aa = 2.4e+ ;
+int bb = 352.;
+bool falt, truu = false;

@@ -1,0 +1,5 @@
+Manifest-Version: 1.0
+Implementation-Title: MiniC Assignment 1
+Implementation-Version: Scanner
+Main-Class: MiniC.MiniC
+
