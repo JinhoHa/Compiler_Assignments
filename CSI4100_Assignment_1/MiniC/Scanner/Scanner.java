@@ -2,8 +2,6 @@ package MiniC.Scanner;
 
 import MiniC.Scanner.SourceFile;
 import MiniC.Scanner.Token;
-import java.util.LinkedList;
-import java.util.Queue;
 
 public final class Scanner {
 
@@ -17,7 +15,7 @@ public final class Scanner {
   private int currentColNr;
 
   private boolean currentlyLookingAhead;
-  private Queue<Character> LookAheadBuffer;
+  private StringBuffer LookAheadBuffer;
 
   private boolean isDigit(char c) {
     return (c >= '0' && c <= '9');
@@ -36,7 +34,7 @@ public final class Scanner {
     verbose = false;
     currentLineNr = -1;
     currentColNr= -1;
-    LookAheadBuffer = new LinkedList<Character>();
+    LookAheadBuffer = new StringBuffer("");
   }
 
   public void enableDebugging() {
@@ -50,19 +48,21 @@ public final class Scanner {
 
   private void takeIt() {
     if(currentlyLookingAhead) {
-      LookAheadBuffer.offer(currentChar);
-    }
-    else if (currentlyScanningToken)
-    {
-      currentLexeme.append(currentChar);
-    }
-    if (currentlyLookingAhead || LookAheadBuffer.isEmpty()) {
+      LookAheadBuffer.append(currentChar);
       currentChar = sourceFile.readChar();
     }
     else {
-      currentChar = LookAheadBuffer.poll();
+      if(currentlyScanningToken) {
+        currentLexeme.append(currentChar);
+      }
+      if(LookAheadBuffer.length() == 0) {
+        currentChar = sourceFile.readChar();
+      }
+      else {
+        currentChar = LookAheadBuffer.charAt(0);
+        LookAheadBuffer.deleteCharAt(0);
+      }
     }
-
   }
 
   private int scanToken() {
@@ -86,9 +86,8 @@ public final class Scanner {
         }
         // 12E2~~
         if(isDigit(currentChar)) {
-          while(!LookAheadBuffer.isEmpty()) {
-            currentLexeme.append(LookAheadBuffer.poll());
-          }
+          currentLexeme.append(LookAheadBuffer);
+          LookAheadBuffer = new StringBuffer("");
           currentlyLookingAhead = false;
           takeIt();
           while(isDigit(currentChar)) {
@@ -98,8 +97,10 @@ public final class Scanner {
         }
         // 12EAB~~
         else {
+          LookAheadBuffer.append(currentChar);
+          currentChar = LookAheadBuffer.charAt(0);
+          LookAheadBuffer.deleteCharAt(0);
           currentlyLookingAhead = false;
-          currentChar = LookAheadBuffer.poll();
           return Token.INTLITERAL;
         }
       }
@@ -121,9 +122,8 @@ public final class Scanner {
             }
             //12.34e56
             if(isDigit(currentChar)) {
-              while(!LookAheadBuffer.isEmpty()) {
-                currentLexeme.append(LookAheadBuffer.poll());
-              }
+              currentLexeme.append(LookAheadBuffer);
+              LookAheadBuffer = new StringBuffer("");
               currentlyLookingAhead = false;
               takeIt();
               while(isDigit(currentChar)) {
@@ -132,8 +132,10 @@ public final class Scanner {
               return Token.FLOATLITERAL;
             }
             else {
+              LookAheadBuffer.append(currentChar);
+              currentChar = LookAheadBuffer.charAt(0);
+              LookAheadBuffer.deleteCharAt(0);
               currentlyLookingAhead = false;
-              currentChar = LookAheadBuffer.poll();
               return Token.FLOATLITERAL;
             }
           }
@@ -151,9 +153,8 @@ public final class Scanner {
           }
           // 12.e34
           if(isDigit(currentChar)) {
-            while(!LookAheadBuffer.isEmpty()) {
-              currentLexeme.append(LookAheadBuffer.poll());
-            }
+            currentLexeme.append(LookAheadBuffer);
+            LookAheadBuffer = new StringBuffer("");
             currentlyLookingAhead = false;
             takeIt();
             while(isDigit(currentChar)) {
@@ -163,8 +164,10 @@ public final class Scanner {
           }
           // 12.eAB
           else {
+            LookAheadBuffer.append(currentChar);
+            currentChar = LookAheadBuffer.charAt(0);
+            LookAheadBuffer.deleteCharAt(0);
             currentlyLookingAhead = false;
-            currentChar = LookAheadBuffer.poll();
             return Token.FLOATLITERAL;
           }
         }
@@ -285,25 +288,30 @@ public final class Scanner {
             takeIt();
             if(currentChar == 'e') {
               takeIt();
-              while(!LookAheadBuffer.isEmpty()) {
-                currentLexeme.append(LookAheadBuffer.poll());
-              }
+              currentLexeme.append(LookAheadBuffer);
+              LookAheadBuffer = new StringBuffer("");
               currentlyLookingAhead = false;
               return Token.BOOLLITERAL;
             }
             else {
+              LookAheadBuffer.append(currentChar);
+              currentChar = LookAheadBuffer.charAt(0);
+              LookAheadBuffer.deleteCharAt(0);
               currentlyLookingAhead = false;
-              currentChar = LookAheadBuffer.poll();
             }
           }
           else {
+            LookAheadBuffer.append(currentChar);
+            currentChar = LookAheadBuffer.charAt(0);
+            LookAheadBuffer.deleteCharAt(0);
             currentlyLookingAhead = false;
-            currentChar = LookAheadBuffer.poll();
           }
         }
         else {
+          LookAheadBuffer.append(currentChar);
+          currentChar = LookAheadBuffer.charAt(0);
+          LookAheadBuffer.deleteCharAt(0);
           currentlyLookingAhead = false;
-          currentChar = LookAheadBuffer.poll();
         }
       }
       else if(currentChar == 'f') {
@@ -317,30 +325,37 @@ public final class Scanner {
               takeIt();
               if(currentChar == 'e') {
                 takeIt();
-                while(!LookAheadBuffer.isEmpty()) {
-                  currentLexeme.append(LookAheadBuffer.poll());
-                }
+                currentLexeme.append(LookAheadBuffer);
+                LookAheadBuffer = new StringBuffer("");
                 currentlyLookingAhead = false;
                 return Token.BOOLLITERAL;
               }
               else {
+                LookAheadBuffer.append(currentChar);
+                currentChar = LookAheadBuffer.charAt(0);
+                LookAheadBuffer.deleteCharAt(0);
                 currentlyLookingAhead = false;
-                currentChar = LookAheadBuffer.poll();
               }
             }
             else {
+              LookAheadBuffer.append(currentChar);
+              currentChar = LookAheadBuffer.charAt(0);
+              LookAheadBuffer.deleteCharAt(0);
               currentlyLookingAhead = false;
-              currentChar = LookAheadBuffer.poll();
             }
           }
           else {
+            LookAheadBuffer.append(currentChar);
+            currentChar = LookAheadBuffer.charAt(0);
+            LookAheadBuffer.deleteCharAt(0);
             currentlyLookingAhead = false;
-            currentChar = LookAheadBuffer.poll();
           }
         }
         else {
+          LookAheadBuffer.append(currentChar);
+          currentChar = LookAheadBuffer.charAt(0);
+          LookAheadBuffer.deleteCharAt(0);
           currentlyLookingAhead = false;
-          currentChar = LookAheadBuffer.poll();
         }
       }
       if(isLetter(currentChar)) {
