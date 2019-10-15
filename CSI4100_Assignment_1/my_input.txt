@@ -1,5 +1,7 @@
-float fal = 2.3e+1;
+float fal = 2.3e+1 / .10e-1//comment1;
 String = new String("GOOD STRING\n");
-"THIS IS NOT TERMINATED;
+/*
+dsf qwe \\sdafer \fd'#
+dsf *//****/ "THIS IS NOT TERMINATE//D;
 _str2=new String("Bad\tString");
 bool b=true;

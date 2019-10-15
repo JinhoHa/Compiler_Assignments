@@ -18,6 +18,7 @@ public final class Scanner {
   private StringBuffer LookAheadBuffer;
 
   private boolean escapeSeq;
+  private boolean isLastCharStar;
 
   private boolean isDigit(char c) {
     return (c >= '0' && c <= '9');
@@ -184,6 +185,50 @@ public final class Scanner {
       else {
         return Token.INTLITERAL;
       }
+    case '.':
+      takeIt();
+      // .34~
+      if(isDigit(currentChar)) {
+        while(isDigit(currentChar)) {
+          takeIt();
+        }
+        // .34e~~
+        if(currentChar == 'E' || currentChar == 'e') {
+          currentlyLookingAhead = true;
+          takeIt();
+          // .34e+
+          if(currentChar == '+' || currentChar == '-') {
+            takeIt();
+          }
+          //.34e56
+          if(isDigit(currentChar)) {
+            currentLexeme.append(LookAheadBuffer);
+            LookAheadBuffer = new StringBuffer("");
+            currentlyLookingAhead = false;
+            takeIt();
+            while(isDigit(currentChar)) {
+              takeIt();
+            }
+            return Token.FLOATLITERAL;
+          }
+          else {
+            LookAheadBuffer.append(currentChar);
+            currentChar = LookAheadBuffer.charAt(0);
+            LookAheadBuffer.deleteCharAt(0);
+            currentlyLookingAhead = false;
+            return Token.FLOATLITERAL;
+          }
+        }
+        // .34
+        else {
+          return Token.FLOATLITERAL;
+        }
+      }
+      // .AB
+      else {
+        return Token.ERROR;
+      }
+
     case '\u0000': // sourceFile.eot:
       currentLexeme.append('$');
       return Token.EOF;
@@ -277,19 +322,16 @@ public final class Scanner {
     case '*':
       takeIt();
       return Token.TIMES;
-    case '/':
-      takeIt();
-      return Token.DIV;
 
     case '\"':
       takeIt();
       currentlyLookingAhead = true;
       while(currentChar != '\"') {
         if(escapeSeq && currentChar != 'n') {
-          System.out.println("ERROR: Illegal escape sequences in string");
+          System.out.println("ERROR: Illegal escape sequences in string!");
         }
         if(currentChar == '\n') {
-          System.out.println("ERROR: Un-terminated String");
+          System.out.println("ERROR: Un-terminated string!");
           currentLexeme.append(LookAheadBuffer);
           LookAheadBuffer = new StringBuffer("");
           currentlyLookingAhead = false;
@@ -314,6 +356,52 @@ public final class Scanner {
       currentLexeme.deleteCharAt(currentLexeme.length()-1);
       currentLexeme.deleteCharAt(0);
       return Token.STRINGLITERAL;
+
+    case '/':
+      takeIt();
+      // End-of-line comment "// ..."
+      if(currentChar == '/') {
+        takeIt();
+        currentlyScanningToken = false;
+        while(currentChar != '\n') {
+          takeIt();
+        }
+        takeIt();
+        currentLexeme = new StringBuffer("");
+        currentlyScanningToken = true;
+        return -1;
+      }
+      // C-Style comment "/* .. */"
+      else if(currentChar == '*') {
+        takeIt();
+        currentlyScanningToken = false;
+        isLastCharStar = false;
+        while(true) {
+          if(currentChar == '\u0000') {
+            System.out.println("ERROR: Un-terminated comment!");
+            currentLexeme = new StringBuffer("$");
+            return Token.EOF;
+          }
+          if(isLastCharStar && (currentChar == '/')) {
+            takeIt();
+            currentLexeme = new StringBuffer("");
+            currentlyScanningToken = true;
+            return -1;
+          }
+          else {
+            if(currentChar == '*') {
+              isLastCharStar = true;
+            }
+            else {
+              isLastCharStar = false;
+            }
+            takeIt();
+          }
+        }
+      }
+      else {
+        return Token.DIV;
+      }
 
     default:
       if(currentChar == 't') {
@@ -414,25 +502,27 @@ public final class Scanner {
     SourcePos pos;
     int kind;
 
-    currentlyScanningToken = false;
-    while (currentChar == ' '
-           || currentChar == '\f'
-           || currentChar == '\n'
-           || currentChar == '\r'
-           || currentChar == '\t')
-    {
-      takeIt();
-    }
+    do {
+      currentlyScanningToken = false;
+      while (currentChar == ' '
+             || currentChar == '\f'
+             || currentChar == '\n'
+             || currentChar == '\r'
+             || currentChar == '\t')
+      {
+        takeIt();
+      }
 
-    currentlyScanningToken = true;
-    currentlyLookingAhead = false;
-    currentLexeme = new StringBuffer("");
-    pos = new SourcePos();
-    // Note: currentLineNr and currentColNr are not maintained yet!
-    pos.StartLine = currentLineNr;
-    pos.EndLine = currentLineNr;
-    pos.StartCol = currentColNr;
-    kind = scanToken();
+      currentlyScanningToken = true;
+      currentlyLookingAhead = false;
+      currentLexeme = new StringBuffer("");
+      pos = new SourcePos();
+      // Note: currentLineNr and currentColNr are not maintained yet!
+      pos.StartLine = currentLineNr;
+      pos.EndLine = currentLineNr;
+      pos.StartCol = currentColNr;
+      kind = scanToken();
+    } while(kind == -1);
     currentToken = new Token(kind, currentLexeme.toString(), pos);
     pos.EndCol = currentColNr;
     if (verbose)
