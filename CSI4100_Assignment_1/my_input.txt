@@ -1,4 +1,4 @@
-float aa = 2.4e+ ;
-int bb = 352.;
-bool falt, truu = "fals
-"e";
+float fal = 2.3e+1;
+String = new String("GOOD STRING");
+"THIS IS NOT TERMINATED;
+bool b=true;

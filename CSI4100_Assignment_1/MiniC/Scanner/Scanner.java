@@ -290,6 +290,7 @@ public final class Scanner {
           currentlyScanningToken = false;
           takeIt();
           currentlyScanningToken = true;
+          currentLexeme.deleteCharAt(0);
           return Token.STRINGLITERAL;
         }
         takeIt();
@@ -298,6 +299,8 @@ public final class Scanner {
       currentLexeme.append(LookAheadBuffer);
       LookAheadBuffer = new StringBuffer("");
       currentlyLookingAhead = false;
+      currentLexeme.deleteCharAt(currentLexeme.length()-1);
+      currentLexeme.deleteCharAt(0);
       return Token.STRINGLITERAL;
 
     default:
