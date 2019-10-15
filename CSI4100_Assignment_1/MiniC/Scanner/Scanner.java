@@ -278,6 +278,28 @@ public final class Scanner {
       takeIt();
       return Token.DIV;
 
+    case '\"':
+      takeIt();
+      currentlyLookingAhead = true;
+      while(currentChar != '\"') {
+        if(currentChar == '\n') {
+          System.out.println("ERROR: Un-terminated String");
+          currentLexeme.append(LookAheadBuffer);
+          LookAheadBuffer = new StringBuffer("");
+          currentlyLookingAhead = false;
+          currentlyScanningToken = false;
+          takeIt();
+          currentlyScanningToken = true;
+          return Token.STRINGLITERAL;
+        }
+        takeIt();
+      }
+      takeIt();
+      currentLexeme.append(LookAheadBuffer);
+      LookAheadBuffer = new StringBuffer("");
+      currentlyLookingAhead = false;
+      return Token.STRINGLITERAL;
+
     default:
       if(currentChar == 't') {
         currentlyLookingAhead = true;
