@@ -35,8 +35,8 @@ public final class Scanner {
     sourceFile = source;
     currentChar = sourceFile.readChar();
     verbose = false;
-    currentLineNr = -1;
-    currentColNr= -1;
+    currentLineNr = 1;
+    currentColNr= 1;
     LookAheadBuffer = new StringBuffer("");
     escapeSeq = false;
   }
@@ -56,6 +56,13 @@ public final class Scanner {
       currentChar = sourceFile.readChar();
     }
     else {
+      if(currentChar == '\n') {
+        currentLineNr++;
+        currentColNr = 1;
+      }
+      else {
+        currentColNr++;
+      }
       if(currentlyScanningToken) {
         currentLexeme.append(currentChar);
       }
@@ -91,6 +98,7 @@ public final class Scanner {
         // 12E2~~
         if(isDigit(currentChar)) {
           currentLexeme.append(LookAheadBuffer);
+          currentColNr = currentColNr + LookAheadBuffer.length();
           LookAheadBuffer = new StringBuffer("");
           currentlyLookingAhead = false;
           takeIt();
@@ -127,6 +135,7 @@ public final class Scanner {
             //12.34e56
             if(isDigit(currentChar)) {
               currentLexeme.append(LookAheadBuffer);
+              currentColNr = currentColNr + LookAheadBuffer.length();
               LookAheadBuffer = new StringBuffer("");
               currentlyLookingAhead = false;
               takeIt();
@@ -158,6 +167,7 @@ public final class Scanner {
           // 12.e34
           if(isDigit(currentChar)) {
             currentLexeme.append(LookAheadBuffer);
+            currentColNr = currentColNr + LookAheadBuffer.length();
             LookAheadBuffer = new StringBuffer("");
             currentlyLookingAhead = false;
             takeIt();
@@ -203,6 +213,7 @@ public final class Scanner {
           //.34e56
           if(isDigit(currentChar)) {
             currentLexeme.append(LookAheadBuffer);
+            currentColNr = currentColNr + LookAheadBuffer.length();
             LookAheadBuffer = new StringBuffer("");
             currentlyLookingAhead = false;
             takeIt();
@@ -231,6 +242,7 @@ public final class Scanner {
 
     case '\u0000': // sourceFile.eot:
       currentLexeme.append('$');
+      currentColNr++;
       return Token.EOF;
     // Add code here for the remaining MiniC tokens...
     // punctuations
@@ -333,11 +345,9 @@ public final class Scanner {
         if(currentChar == '\n') {
           System.out.println("ERROR: Un-terminated string!");
           currentLexeme.append(LookAheadBuffer);
+          currentColNr = currentColNr + LookAheadBuffer.length();
           LookAheadBuffer = new StringBuffer("");
           currentlyLookingAhead = false;
-          currentlyScanningToken = false;
-          takeIt();
-          currentlyScanningToken = true;
           currentLexeme.deleteCharAt(0);
           return Token.STRINGLITERAL;
         }
@@ -351,6 +361,7 @@ public final class Scanner {
       }
       takeIt();
       currentLexeme.append(LookAheadBuffer);
+      currentColNr = currentColNr + LookAheadBuffer.length();
       LookAheadBuffer = new StringBuffer("");
       currentlyLookingAhead = false;
       currentLexeme.deleteCharAt(currentLexeme.length()-1);
@@ -380,6 +391,7 @@ public final class Scanner {
           if(currentChar == '\u0000') {
             System.out.println("ERROR: Un-terminated comment!");
             currentLexeme = new StringBuffer("$");
+            currentColNr++;
             return Token.EOF;
           }
           if(isLastCharStar && (currentChar == '/')) {
@@ -414,6 +426,7 @@ public final class Scanner {
             if(currentChar == 'e') {
               takeIt();
               currentLexeme.append(LookAheadBuffer);
+              currentColNr = currentColNr + LookAheadBuffer.length();
               LookAheadBuffer = new StringBuffer("");
               currentlyLookingAhead = false;
               return Token.BOOLLITERAL;
@@ -451,6 +464,7 @@ public final class Scanner {
               if(currentChar == 'e') {
                 takeIt();
                 currentLexeme.append(LookAheadBuffer);
+                currentColNr = currentColNr + LookAheadBuffer.length();
                 LookAheadBuffer = new StringBuffer("");
                 currentlyLookingAhead = false;
                 return Token.BOOLLITERAL;
@@ -524,7 +538,7 @@ public final class Scanner {
       kind = scanToken();
     } while(kind == -1);
     currentToken = new Token(kind, currentLexeme.toString(), pos);
-    pos.EndCol = currentColNr;
+    pos.EndCol = currentColNr - 1;
     if (verbose)
       currentToken.print();
     return currentToken;
