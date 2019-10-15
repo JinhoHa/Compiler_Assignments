@@ -17,6 +17,8 @@ public final class Scanner {
   private boolean currentlyLookingAhead;
   private StringBuffer LookAheadBuffer;
 
+  private boolean escapeSeq;
+
   private boolean isDigit(char c) {
     return (c >= '0' && c <= '9');
   }
@@ -35,6 +37,7 @@ public final class Scanner {
     currentLineNr = -1;
     currentColNr= -1;
     LookAheadBuffer = new StringBuffer("");
+    escapeSeq = false;
   }
 
   public void enableDebugging() {
@@ -282,6 +285,9 @@ public final class Scanner {
       takeIt();
       currentlyLookingAhead = true;
       while(currentChar != '\"') {
+        if(escapeSeq && currentChar != 'n') {
+          System.out.println("ERROR: Illegal escape sequences in string");
+        }
         if(currentChar == '\n') {
           System.out.println("ERROR: Un-terminated String");
           currentLexeme.append(LookAheadBuffer);
@@ -292,6 +298,12 @@ public final class Scanner {
           currentlyScanningToken = true;
           currentLexeme.deleteCharAt(0);
           return Token.STRINGLITERAL;
+        }
+        if(currentChar == '\\') {
+          escapeSeq = true;
+        }
+        else {
+          escapeSeq = false;
         }
         takeIt();
       }

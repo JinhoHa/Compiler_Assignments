@@ -1,4 +1,5 @@
 float fal = 2.3e+1;
-String = new String("GOOD STRING");
+String = new String("GOOD STRING\n");
 "THIS IS NOT TERMINATED;
+_str2=new String("Bad\tString");
 bool b=true;
