@@ -314,6 +314,69 @@ public class Parser {
           currentToken.GetLexeme());
     }
   }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseWhileStmt():
+  //
+  // while-stmt ::= while "(" expr ")" stmt
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public void parseWhileStmt() throws SyntaxError {
+    accept(Token.WHILE);
+    accept(Token.LEFTPAREN);
+    parseExpr();
+    accept(Token.RIGHTPAREN);
+    parseStmt();
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseForStmt():
+  //
+  // for-stmt ::= for "(" asgnexpr? ";" expr? ";" asgnexpr? ")" stmt
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public void parseForStmt() throws SyntaxError {
+    accept(Token.FOR);
+    accept(Token.LEFTPAREN);
+    if(currentToken.kind == Token.ID) {
+      parseAsgnExpr();
+    }
+    accept(Token.SEMICOLON);
+    if(isFirstExpr(currentToken.kind)) {
+      parseExpr();
+    }
+    accept(Token.SEMICOLON);
+    if(currentToken.kind == Token.ID) {
+      parseAsgnExpr();
+    }
+    accept(Token.RIGHTPAREN);
+    parseStmt();
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseIfStmt():
+  //
+  // if-stmt ::= if "(" expr ")" stmt ( else stmt )?
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public void parseIfStmt() throws SyntaxError {
+    accept(Token.IF);
+    accept(Token.LEFTPAREN);
+    parseExpr();
+    accept(Token.RIGHTPAREN);
+    parseStmt();
+    if(currentToken.kind == Token.ELSE) {
+      accept(Token.ELSE);
+      parseStmt();
+    }
+  }
+
   ///////////////////////////////////////////////////////////////////////////////
   //
   // parseVarDef():
@@ -530,13 +593,36 @@ public class Parser {
       parseExpr();
       accept(Token.RIGHTPAREN);
     }
-    else if(isTypeSpecifier(currentToken.kind)) {
-      acceptIt();
+    else if(currentToken.kind == Token.INTLITERAL) {
+      accept(Token.INTLITERAL);
+    }
+    else if(currentToken.kind == Token.BOOLLITERAL) {
+      accept(Token.BOOLLITERAL);
+    }
+    else if(currentToken.kind == Token.FLOATLITERAL) {
+      accept(Token.FLOATLITERAL);
+    }
+    else if(currentToken.kind == Token.STRINGLITERAL) {
+      accept(Token.STRINGLITERAL);
     }
     else {
       syntaxError("\"%\" not expected here, expected : ID | \"(\" | TypeSpecifier",
           currentToken.GetLexeme());
     }
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseAsgnExpr():
+  //
+  // asgnexpr ::= ID "=" expr
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public void parseAsgnExpr() throws SyntaxError {
+    accept(Token.ID);
+    accept(Token.ASSIGN);
+    parseExpr();
   }
 
   ///////////////////////////////////////////////////////////////////////////////
