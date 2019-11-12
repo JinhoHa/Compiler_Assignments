@@ -241,10 +241,10 @@ public class Parser {
       parseVarDef();
     }
     while(currentToken.kind == Token.LEFTBRACE ||
-    currentToken.kind == Token.if ||
-    currentToken.kind == Token.while ||
-    currentToken.kind == Token.for ||
-    currentToken.kind == Token.return ||
+    currentToken.kind == Token.IF ||
+    currentToken.kind == Token.WHILE ||
+    currentToken.kind == Token.FOR ||
+    currentToken.kind == Token.RETURN ||
     currentToken.kind == Token.ID) {
       parseStmt();
     }
@@ -270,17 +270,17 @@ public class Parser {
       case Token.LEFTBRACE:
         parseCompoundStmt();
         break;
-      case Token.if:
+      case Token.IF:
         parseIfStmt();
         break;
-      case Token.while:
+      case Token.WHILE:
         parseWhileStmt();
         break;
-      case Token.for:
+      case Token.FOR:
         parseForStmt();
         break;
-      case Token.return:
-        accept(Token.return);
+      case Token.RETURN:
+        accept(Token.RETURN);
         if(isFirstExpr(currentToken.kind)) {
           parseExpr();
         }
