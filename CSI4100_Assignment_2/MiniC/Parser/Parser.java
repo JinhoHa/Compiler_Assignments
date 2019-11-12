@@ -230,8 +230,7 @@ public class Parser {
   //
   // parseCompoundStmt():
   //
-  // CompoundStmt ::= "{" VariableDefinition* Stmt* "}"
-  // VariableDefinition ::= TypeSpecifier ID VarPart
+  // CompoundStmt ::= "{" variable-def* Stmt* "}"
   //
   ///////////////////////////////////////////////////////////////////////////////
 
@@ -239,9 +238,7 @@ public class Parser {
     // to be completed by you...
     accept(Token.LEFTBRACE);
     while(isTypeSpecifier(currentToken.kind)) {
-      acceptIt();
-      accept(Token.ID);
-      parseVarPart();
+      parseVarDef();
     }
     while(currentToken.kind == Token.LEFTBRACE ||
     currentToken.kind == Token.if ||
@@ -255,6 +252,94 @@ public class Parser {
 
   }
 
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseStmt():
+  //
+  // Stmt ::= CompoundStmt
+  //        | if-stmt
+  //        | while-stmt
+  //        | for-stmt
+  //        | return expr? ";"
+  //        | ID ( ( "=" expr ) | ( "[" expr "]" "=" expr ) | ( arglist ) ) ";"
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public void parseStmt() throws SyntaxError {
+    switch(currentToken.kind) {
+      case Token.LEFTBRACE:
+        parseCompoundStmt();
+        break;
+      case Token.if:
+        parseIfStmt();
+        break;
+      case Token.while:
+        parseWhileStmt();
+        break;
+      case Token.for:
+        parseForStmt();
+        break;
+      case Token.return:
+        accept(Token.return);
+        if(isFirstExpr(currentToken.kind)) {
+          parseExpr();
+        }
+        accept(Token.SEMICOLON);
+        break;
+      case Token.ID:
+        accept(Token.ID);
+        switch(currentToken.kind) {
+          case Token.ASSIGN:
+            accept(Token.ASSIGN);
+            parseExpr();
+            break;
+          case Token.LEFTBRACKET:
+            accept(Token.LEFTBRACKET);
+            parseExpr();
+            accept(Token.RIGHTBRACKET);
+            accept(Token.ASSIGN);
+            parseExpr();
+            break;
+          case Token.LEFTPAREN:
+            parseArgList();
+            break;
+          default:
+            syntaxError("\"%\" not expected here",
+              currentToken.GetLexeme());
+        }
+        accept(Token.SEMICOLON);
+        break;
+      default:
+        syntaxError("\"%\" not expected here",
+          currentToken.GetLexeme());
+    }
+  }
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseVarDef():
+  //
+  // variable-def ::= TypeSpecifier init-decl ("," init-decl)* ";"
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public void parseVarDef() throws SyntaxError {
+    if(isTypeSpecifier(currentToken.kind)) {
+      acceptIt();
+    }
+    else {
+      syntaxError("\"%\" not expected here",
+          currentToken.GetLexeme());
+    }
+
+    parseInitDecl();
+
+    while(currentToken.kind == Token.COMMA) {
+      accept(Token.COMMA);
+      parseInitDecl();
+    }
+
+    accept(Token.SEMICOLON);
+  }
 
   ///////////////////////////////////////////////////////////////////////////////
   //
