@@ -635,7 +635,9 @@ public class Parser {
 
   public void parseArgList() throws SyntaxError {
     accept(Token.LEFTPAREN);
-    parseArgs();
+    if(isFirstExpr(currentToken.kind)) {
+      parseArgs();
+    }
     accept(Token.RIGHTPAREN);
   }
 
@@ -650,6 +652,7 @@ public class Parser {
   public void parseArgs() throws SyntaxError {
     parseArg();
     while(currentToken.kind == Token.COMMA) {
+      accept(Token.COMMA);
       parseArg();
     }
   }
