@@ -557,6 +557,41 @@ public class Parser {
 
   ///////////////////////////////////////////////////////////////////////////////
   //
+  // parseWhileStmt():
+  //
+  // while-stmt ::= while "(" expr ")" stmt
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Stmt parseWhileStmt() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
+    accept(Token.WHILE);
+    accept(Token.LEFTPAREN);
+    Expr E = parseExpr();
+    accept(Token.RIGHTPAREN);
+    Stmt S = parseStmt();
+    finish(pos);
+    return new WhileStmt(E, S, pos);
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseForStmt():
+  //
+  // for-stmt ::= for "(" asgnexpr? ";" expr? ";" asgnexpr? ")" stmt
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Stmt parseForStmt() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
+    accept(Token.FOR);
+    
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
   // parseArgList():
   //
   // ArgList ::= "(" ( arg ( "," arg )* )? ")"
