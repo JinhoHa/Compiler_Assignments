@@ -587,7 +587,31 @@ public class Parser {
     SourcePos pos = new SourcePos();
     start(pos);
     accept(Token.FOR);
-    
+    accept(Token.LEFTPAREN);
+    Expr E1 = new EmptyExpr(previousTokenPosition);
+    if(currentToken.kind == Token.ID) {
+      E1 = parseAsgnExpr();
+    }
+    accept(Token.SEMICOLON);
+    Expr E2 = new EmptyExpr(previousTokenPosition);
+    if (currentToken.kind == Token.LEFTBRACE ||
+          currentToken.kind == Token.IF ||
+          currentToken.kind == Token.WHILE ||
+          currentToken.kind == Token.FOR ||
+          currentToken.kind == Token.RETURN ||
+          currentToken.kind == Token.ID) {
+      E2 = parseExpr();
+    }
+    accept(Token.SEMICOLON);
+    Expr E3 = new EmptyExpr(previousTokenPosition);
+    if(currentToken.kind == Token.ID) {
+      E3 = parseAsgnExpr();
+    }
+    accept(Token.RIGHTPAREN);
+    Stmt S = parseStmt();
+
+    finish(pos);
+    return new ForStmt(E1, E2, E3, S, pos);
   }
 
   ///////////////////////////////////////////////////////////////////////////////
