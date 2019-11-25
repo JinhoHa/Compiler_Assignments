@@ -479,7 +479,7 @@ public class Parser {
   //        | if-stmt
   //        | while-stmt
   //        | for-stmt
-  //        | return expr? ";"
+  //        | return-stmt
   //        | ID ( ( "=" expr ) | ( "[" expr "]" "=" expr ) | ( arglist ) ) ";"
   //
   ///////////////////////////////////////////////////////////////////////////////
@@ -613,6 +613,34 @@ public class Parser {
     finish(pos);
     return new ForStmt(E1, E2, E3, S, pos);
   }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseReturnStmt():
+  //
+  // returnStmt ::= return expr? ";"
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Stmt parseReturnStmt() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
+    accept(Token.RETURN);
+    Expr E = new EmptyExpr(previousTokenPosition);
+    if (currentToken.kind == Token.LEFTBRACE ||
+          currentToken.kind == Token.IF ||
+          currentToken.kind == Token.WHILE ||
+          currentToken.kind == Token.FOR ||
+          currentToken.kind == Token.RETURN ||
+          currentToken.kind == Token.ID) {
+      E = parseExpr();
+    }
+    finish(pos);
+    accept(Token.SEMICOLON);
+
+    return new ReturnStmt(E, pos);
+  }
+
 
   ///////////////////////////////////////////////////////////////////////////////
   //
