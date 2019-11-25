@@ -529,6 +529,31 @@ public class Parser {
     }
   }
 
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseIfStmt():
+  //
+  // if-stmt ::= if "(" expr ")" stmt ( else stmt )?
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Stmt parseIfStmt() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
+    accept(Token.IF);
+    accept(Token.LEFTPAREN);
+    Expr eE = parseExpr();
+    accept(Token.RIGHTPAREN);
+    Stmt thenS = parseStmt();
+    if(currentToken.kind == Token.ELSE) {
+      acceptIt();
+      Stmt elseS = parseStmt();
+      finish(pos);
+      return new IfStmt(eE, thenS, elseS, pos);
+    }
+    finish(pos);
+    return new IfStmt(eE, thenS, pos);
+  }
 
   ///////////////////////////////////////////////////////////////////////////////
   //
