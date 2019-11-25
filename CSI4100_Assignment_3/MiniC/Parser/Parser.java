@@ -320,6 +320,42 @@ public class Parser {
     }
   }
 
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseInitDecl():
+  //
+  // init_decl ::= declarator ( "=" initializer )?
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  // return DeclSequence
+  public Decl parseInitDecl(Type T) throws SyntaxError {
+    Type theType = T;
+    ID Ident = parseID();
+    Decl D;
+    DeclSequence Seq = null;
+    Expr E = new EmptyExpr(previousTokenPosition);
+
+    if (currentToken.kind == Token.LEFTBRACKET) {
+      theType = parseArrayIndexDecl(T);
+    }
+    if (currentToken.kind == Token.ASSIGN) {
+      acceptIt();
+      E = parseInitializer();
+    }
+    D = new VarDecl (theType, Ident, E, previousTokenPosition);
+    if (currentToken.kind == Token.COMMA) {
+      acceptIt();
+      Seq = new DeclSequence (D, parseInitDecl(T), previousTokenPosition);
+    }
+    else {
+      Seq = new DeclSequence (D, new EmptyDecl (previousTokenPosition),
+      previousTokenPosition);
+    }
+
+    return Seq;
+  }
+
   public Expr parseExpr() throws SyntaxError {
     Expr E = null;
     return E;
