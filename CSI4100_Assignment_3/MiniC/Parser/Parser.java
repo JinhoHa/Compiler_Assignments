@@ -384,7 +384,8 @@ public class Parser {
   //
   // parseExpr():
   //
-  // expr ::=
+  ///////////////////////////////////////////////////////////////////////////////
+
   public Expr parseExpr() throws SyntaxError {
     Expr E = null;
     return E;
@@ -423,11 +424,48 @@ public class Parser {
   ///////////////////////////////////////////////////////////////////////////////
 
   public Expr parsePrimaryExpr() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
     Expr retExpr = null;
 
     // your code goes here...
-
-
+    if(currentToken.kind == Token.INTLITERAL) {
+      retExpr = new IntExpr(new IntLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+    }
+    else if(currentToken.kind == Token.BOOLLITERAL) {
+      retExpr = new BoolExpr(new BoolLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+    }
+    else if(currentToken.kind == Token.FLOATLITERAL) {
+      retExpr = new FloatExpr(new FloatLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+    }
+    else if(currentToken.kind == Token.STRINGLITERAL) {
+      retExpr = new StringExpr(new StringLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+    }
+    else if(currentToken.kind == Token.LEFTPAREN) {
+      accept(Token.LEFTPAREN);
+      retExpr = parseExpr();
+      accept(Token.RIGHTPAREN);
+    }
+    else if(currentToken.kind == Token.ID) {
+      ID Ident = parseID();
+      if(currentToken.kind == Token.LEFTPAREN) {
+        Expr paramE = parseArgList();
+        finish(pos);
+        retExpr = new CallExpr(Ident, paramE, pos);
+      }
+      else if(currentToken.kind == Token.LEFTBRACKET) {
+        Expr VE = new VarExpr(Ident, previousTokenPosition);
+        accept(Token.LEFTBRACKET);
+        Expr E = parseExpr();
+        accept(Token.RIGHTBRACKET);
+        finish(pos);
+        retExpr = new ArrayExpr(VE, E, pos);
+      }
+    }
+    else {
+      syntaxError("\"%\" not expected here",
+        currentToken.GetLexeme());
+    }
 
 
     return retExpr;
