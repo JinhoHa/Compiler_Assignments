@@ -507,27 +507,30 @@ public class Parser {
       SourcePos IdPos = new SourcePos();
       start(IdPos);
       ID Ident = parseID();
-
       if(currentToken.kind == Token.LEFTPAREN) {
-        return parseCallExpr(ID, pos);
+        return parseCallStmt(Ident, pos);
       }
       else if(currentToken.kind == Token.LEFTBRACKET ||
       currentToken.kind == Token.ASSIGN) {
-        Expr LE = new VarExpr(Ident, previousTokenPosition);
+        Expr VE = new VarExpr(Ident, previousTokenPosition);
+        Expr LE = VE;
         if(currentToken.kind == Token.LEFTBRACKET) {
           acceptIt();
           Expr E = parseExpr();
           accept(Token.RIGHTBRACKET);
           finish(IdPos);
-          LE = new ArrayExpr(Ident, E, IdPos);
+          LE = new ArrayExpr(VE, E, IdPos);
         }
         accept(Token.ASSIGN);
         Expr RE = parseExpr();
         finish(pos);
         accept(Token.SEMICOLON);
-        return new AssignExpr(LE, RE, pos);
+        return new AssignStmt(LE, RE, pos);
       }
     }
+    syntaxError("\"%\" not expected here",
+      currentToken.GetLexeme());
+    return null;
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -681,6 +684,10 @@ public class Parser {
      acceptIt();
      }
      */
+     Params = new ActualParam(parseExpr(), previousTokenPosition);
+     if(currentToken.kind == Token.COMMA) {
+       acceptIt();
+     }
     return new ActualParamSequence (Params, parseArgs(), previousTokenPosition);
   }
 
@@ -689,6 +696,11 @@ public class Parser {
     Expr Params = parseArgs();
     accept(Token.RIGHTPAREN);
     return Params;
+  }
+
+  public Expr parseAsgnExpr() throws SyntaxError {
+    Expr E = null;
+    return E;
   }
 
 
