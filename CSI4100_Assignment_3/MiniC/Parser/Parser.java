@@ -524,6 +524,7 @@ public class Parser {
         accept(Token.ASSIGN);
         Expr RE = parseExpr();
         finish(pos);
+        accept(Token.SEMICOLON);
         return new AssignExpr(LE, RE, pos);
       }
     }
@@ -639,6 +640,22 @@ public class Parser {
     accept(Token.SEMICOLON);
 
     return new ReturnStmt(E, pos);
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseCallStmt():
+  //
+  // call-stmt ::= ID arglist ";"
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Stmt parseCallStmt(ID Ident, SourcePos pos) throws SyntaxError {
+    Expr paramE = parseArgList();
+    finish(pos);
+    Expr callE = new CallExpr(Ident, paramE, pos);
+    accept(Token.SEMICOLON);
+    return new CallStmt(callE, pos);
   }
 
 
