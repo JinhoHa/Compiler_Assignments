@@ -202,7 +202,7 @@ public class Parser {
     }
     return new FormalParamDeclSequence (PDecl,
         parseParamsList(), previousTokenPosition);
-  } 
+  }
 
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -271,6 +271,7 @@ public class Parser {
       // You can use the following code after you have implemented
       // parseInitializer():
       // E = parseInitializer();
+      E = parseInitializer();
     }
     D = new VarDecl (theType, Ident, E, previousTokenPosition);
     // You can use the following code after implementatin of parseInitDecl():
@@ -287,6 +288,42 @@ public class Parser {
     return Seq;
   }
 
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseInitializer():
+  //
+  // initializer ::= expr
+  //               | "{" expr ( "," expr )* "}"
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Expr parseInitializer() throws SyntaxError {
+    // case ExprSequence
+    if(currentToken.kind == Token.LEFTBRACE) {
+      acceptIt();
+      ExprSequence Seq = null;
+      Expr E = parseExpr();
+      if(currentToken.kind == Token.COMMA) {
+        acceptIt();
+        Seq = new ExprSequence(E, parseExpr(), previousTokenPosition);
+      }
+      else {
+        Seq = new ExprSequence(E, new EmptyExpr(previousTokenPosition), previousTokenPosition);
+      }
+      accept(Token.RIGHTBRACE);
+      return Seq;
+    }
+    // case Expr
+    else {
+      Expr E = parseExpr();
+      return E;
+    }
+  }
+
+  public Expr parseExpr() throws SyntaxError {
+    Expr E = null;
+    return E;
+  }
 
   ///////////////////////////////////////////////////////////////////////////////
   //
@@ -350,7 +387,7 @@ public class Parser {
     DeclSequence VarsTail = Vars.GetRightmostDeclSequenceNode();
     Decl RemainderDecls = parseCompoundDecls();
     VarsTail.SetRightSubtree (RemainderDecls);
-    return Vars;       
+    return Vars;
   }
 
   public Stmt parseCompoundStmts () throws SyntaxError {
@@ -397,7 +434,7 @@ public class Parser {
   public Expr parseArgs() throws SyntaxError {
     if (currentToken.kind == Token.RIGHTPAREN) {
       return new  EmptyActualParam (previousTokenPosition);
-    } 
+    }
     Expr Params = null;
     /*
      * You can use the following code after you have implemented parseExpr() aso.:
