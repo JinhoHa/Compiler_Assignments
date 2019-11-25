@@ -284,6 +284,14 @@ public class Parser {
        previousTokenPosition);
        }
      */
+     if (currentToken.kind == Token.COMMA) {
+       acceptIt();
+       Seq = new DeclSequence (D, parseInitDecl(T), previousTokenPosition);
+     }
+     else {
+       Seq = new DeclSequence (D, new EmptyDecl (previousTokenPosition),
+       previousTokenPosition);
+     }
     accept (Token.SEMICOLON);
     return Seq;
   }
@@ -356,6 +364,11 @@ public class Parser {
     return Seq;
   }
 
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseExpr():
+  //
+  // expr ::=
   public Expr parseExpr() throws SyntaxError {
     Expr E = null;
     return E;
@@ -455,6 +468,64 @@ public class Parser {
       return new EmptyCompoundStmt (previousTokenPosition);
     } else {
       return new CompoundStmt (D, S, pos);
+    }
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseStmt():
+  //
+  // Stmt ::= CompoundStmt
+  //        | if-stmt
+  //        | while-stmt
+  //        | for-stmt
+  //        | return expr? ";"
+  //        | ID ( ( "=" expr ) | ( "[" expr "]" "=" expr ) | ( arglist ) ) ";"
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Stmt parseStmt() throws SyntaxError {
+    Stmt S = null;
+    SourcePos pos = new SourcePos();
+    start(pos);
+    if(currentToken.kind == Token.LEFTBRACE) {
+      return parseCompoundStmt();
+    }
+    else if(currentToken.kind == Token.IF) {
+      return parseIfStmt();
+    }
+    else if(currentToken.kind == Token.WHILE) {
+      return parseWhileStmt();
+    }
+    else if(currentToken.kind == Token.FOR) {
+      return parseForStmt();
+    }
+    else if(currentToken.kind == Token.RETURN) {
+      return parseReturnStmt();
+    }
+    else if(currentToken.kind == Token.ID) {
+      SourcePos IdPos = new SourcePos();
+      start(IdPos);
+      ID Ident = parseID();
+
+      if(currentToken.kind == Token.LEFTPAREN) {
+        return parseCallExpr(ID, pos);
+      }
+      else if(currentToken.kind == Token.LEFTBRACKET ||
+      currentToken.kind == Token.ASSIGN) {
+        Expr LE = new VarExpr(Ident, previousTokenPosition);
+        if(currentToken.kind == Token.LEFTBRACKET) {
+          acceptIt();
+          Expr E = parseExpr();
+          accept(Token.RIGHTBRACKET);
+          finish(IdPos);
+          LE = new ArrayExpr(Ident, E, IdPos);
+        }
+        accept(Token.ASSIGN);
+        Expr RE = parseExpr();
+        finish(pos);
+        return new AssignExpr(LE, RE, pos);
+      }
     }
   }
 
