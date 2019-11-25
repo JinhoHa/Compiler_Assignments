@@ -72,6 +72,22 @@ public class Parser {
     }
   }
 
+  boolean isFirstExpr(int token) {
+    if (token == Token.PLUS ||
+      token == Token.MINUS ||
+      token == Token.NOT ||
+      token == Token.ID ||
+      token == Token.LEFTPAREN ||
+      token == Token.INTLITERAL ||
+      token == Token.BOOLLITERAL ||
+      token == Token.FLOATLITERAL ||
+      token == Token.STRINGLITERAL) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
 
   ///////////////////////////////////////////////////////////////////////////////
   //
@@ -452,6 +468,7 @@ public class Parser {
     Stmt S = null;
     // You can use the following code after implementation of parseStmt():
     //S = parseStmt();
+    S = parseStmt();
     return new StmtSequence (S, parseCompoundStmts(), previousTokenPosition);
   }
 
@@ -598,12 +615,7 @@ public class Parser {
     }
     accept(Token.SEMICOLON);
     Expr E2 = new EmptyExpr(previousTokenPosition);
-    if (currentToken.kind == Token.LEFTBRACE ||
-          currentToken.kind == Token.IF ||
-          currentToken.kind == Token.WHILE ||
-          currentToken.kind == Token.FOR ||
-          currentToken.kind == Token.RETURN ||
-          currentToken.kind == Token.ID) {
+    if (isFirstExpr(currentToken.kind)) {
       E2 = parseExpr();
     }
     accept(Token.SEMICOLON);
@@ -631,12 +643,7 @@ public class Parser {
     start(pos);
     accept(Token.RETURN);
     Expr E = new EmptyExpr(previousTokenPosition);
-    if (currentToken.kind == Token.LEFTBRACE ||
-          currentToken.kind == Token.IF ||
-          currentToken.kind == Token.WHILE ||
-          currentToken.kind == Token.FOR ||
-          currentToken.kind == Token.RETURN ||
-          currentToken.kind == Token.ID) {
+    if (isFirstExpr(currentToken.kind)) {
       E = parseExpr();
     }
     finish(pos);
