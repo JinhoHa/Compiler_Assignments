@@ -407,6 +407,113 @@ public class Parser {
 
   ///////////////////////////////////////////////////////////////////////////////
   //
+  // parseAndExpr():
+  //
+  // and-expr ::= relational-expr ( "&&" relational-expr )*
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Expr parseAndExpr() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
+    Expr E = null;
+    Expr E1 = parseRelationalExpr();
+    E = E1;
+    while(currentToken.kind == Token.AND) {
+      E1 = E;
+      Operator opAST = new Operator(currentToken.GetLexeme(), previousTokenPosition);
+      acceptIt();
+      Expr E2 = parseRelationalExpr();
+      finish(pos);
+      E = new BinaryExpr(E1, opAST, E2, pos);
+    }
+    return E;
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseRelationalExpr():
+  //
+  // relational-expr ::= add-expr ( ( "==" | "!=" | "<" | "<=" | ">" | ">=" ) add-expr )*
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Expr parseRelationalExpr() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
+    Expr E = null;
+    Expr E1 = parseAddExpr();
+    E = E1;
+    while(currentToken.kind == Token.EQ ||
+      currentToken.kind == Token.NOTEQ  ||
+      currentToken.kind == Token.LESSEQ ||
+      currentToken.kind == Token.LESS ||
+      currentToken.kind == Token.GREATEREQ ||
+      currentToken.kind == Token.GREATER) {
+      E1 = E;
+      Operator opAST = new Operator(currentToken.GetLexeme(), previousTokenPosition);
+      acceptIt();
+      Expr E2 = parseAddExpr();
+      finish(pos);
+      E = new BinaryExpr(E1, opAST, E2, pos);
+    }
+    return E;
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseAddExpr():
+  //
+  // add-expr ::= mult-expr ( ( "+" | "-" ) mult-expr )*
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Expr parseAddExpr() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
+    Expr E = null;
+    Expr E1 = parseMultExpr();
+    E = E1;
+    while(currentToken.kind == Token.PLUS ||
+      currentToken.kind == Token.MINUS) {
+      E1 = E;
+      Operator opAST = new Operator(currentToken.GetLexeme(), previousTokenPosition);
+      acceptIt();
+      Expr E2 = parseMultExpr();
+      finish(pos);
+      E = new BinaryExpr(E1, opAST, E2, pos);
+    }
+    return E;
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseMultExpr():
+  //
+  // mult-expr ::= unary-expr ( ( "*" | "/" ) unary-expr )*
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
+  public Expr parseMultExpr() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
+    Expr E = null;
+    Expr E1 = parseUnaryExpr();
+    E = E1;
+    while(currentToken.kind == Token.TIMES ||
+      currentToken.kind == Token.DIV) {
+      E1 = E;
+      Operator opAST = new Operator(currentToken.GetLexeme(), previousTokenPosition);
+      acceptIt();
+      Expr E2 = parseUnaryExpr();
+      finish(pos);
+      E = new BinaryExpr(E1, opAST, E2, pos);
+    }
+    return E;
+  }
+
+  ///////////////////////////////////////////////////////////////////////////////
+  //
   // parseUnaryExpr():
   //
   // UnaryExpr ::= ("+"|"-"|"!")* PrimaryExpr
