@@ -329,7 +329,7 @@ public class Parser {
       Expr E = parseExpr();
       if(currentToken.kind == Token.COMMA) {
         acceptIt();
-        Seq = new ExprSequence(E, parseExpr(), previousTokenPosition);
+        Seq = new ExprSequence(E, parseExprSeq(), previousTokenPosition);
       }
       else {
         Seq = new ExprSequence(E, new EmptyExpr(previousTokenPosition), previousTokenPosition);
@@ -342,6 +342,19 @@ public class Parser {
       Expr E = parseExpr();
       return E;
     }
+  }
+
+  public Expr parseExprSeq() throws SyntaxError {
+    ExprSequence Seq = null;
+    Expr E = parseExpr();
+    if(currentToken.kind == Token.COMMA) {
+      acceptIt();
+      Seq = new ExprSequence(E, parseExprSeq(), previousTokenPosition);
+    }
+    else {
+      Seq = new ExprSequence(E, new EmptyExpr(previousTokenPosition), previousTokenPosition);
+    }
+    return Seq;
   }
 
   ///////////////////////////////////////////////////////////////////////////////
@@ -551,16 +564,24 @@ public class Parser {
 
     // your code goes here...
     if(currentToken.kind == Token.INTLITERAL) {
-      retExpr = new IntExpr(new IntLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+      Expr E = new IntExpr(new IntLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+      acceptIt();
+      return E;
     }
     else if(currentToken.kind == Token.BOOLLITERAL) {
-      retExpr = new BoolExpr(new BoolLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+      Expr E = new BoolExpr(new BoolLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+      acceptIt();
+      return E;
     }
     else if(currentToken.kind == Token.FLOATLITERAL) {
-      retExpr = new FloatExpr(new FloatLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+      Expr E = new FloatExpr(new FloatLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+      acceptIt();
+      return E;
     }
     else if(currentToken.kind == Token.STRINGLITERAL) {
-      retExpr = new StringExpr(new StringLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+      Expr E = new StringExpr(new StringLiteral(currentToken.GetLexeme(), previousTokenPosition), previousTokenPosition);
+      acceptIt();
+      return E;
     }
     else if(currentToken.kind == Token.LEFTPAREN) {
       accept(Token.LEFTPAREN);
@@ -569,6 +590,7 @@ public class Parser {
     }
     else if(currentToken.kind == Token.ID) {
       ID Ident = parseID();
+      retExpr = new VarExpr(Ident, previousTokenPosition);
       if(currentToken.kind == Token.LEFTPAREN) {
         Expr paramE = parseArgList();
         finish(pos);
@@ -864,9 +886,23 @@ public class Parser {
     return Params;
   }
 
+  ///////////////////////////////////////////////////////////////////////////////
+  //
+  // parseAsgnExpr():
+  //
+  // asgnexpr ::= ID "=" expr
+  //
+  ///////////////////////////////////////////////////////////////////////////////
+
   public Expr parseAsgnExpr() throws SyntaxError {
-    Expr E = null;
-    return E;
+    SourcePos pos = new SourcePos();
+    start(pos);
+    ID Ident = parseID();
+    Expr E1 = new VarExpr(Ident, previousTokenPosition);
+    accept(Token.ASSIGN);
+    Expr E2 = parseExpr();
+    finish(pos);
+    return new AssignExpr(E1, E2, pos);
   }
 
 
