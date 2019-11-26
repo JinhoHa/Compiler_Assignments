@@ -384,10 +384,24 @@ public class Parser {
   //
   // parseExpr():
   //
+  // expr ::= and-expr ( "||" and-expr )*
+  //
   ///////////////////////////////////////////////////////////////////////////////
 
   public Expr parseExpr() throws SyntaxError {
+    SourcePos pos = new SourcePos();
+    start(pos);
     Expr E = null;
+    Expr E1 = parseAndExpr();
+    E = E1;
+    while(currentToken.kind == Token.OR) {
+      E1 = E;
+      Operator opAST = new Operator(currentToken.GetLexeme(), previousTokenPosition);
+      acceptIt();
+      Expr E2 = parseAndExpr();
+      finish(pos);
+      E = new BinaryExpr(E1, opAST, E2, pos);
+    }
     return E;
   }
 
