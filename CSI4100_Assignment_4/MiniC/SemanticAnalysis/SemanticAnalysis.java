@@ -42,6 +42,9 @@ public class SemanticAnalysis implements Visitor {
   " is " + t.getClass().getName());
   }
    */
+   private void PrintClassName(AST t) {
+     System.out.println("The class of " + t + " is " + t.getClass().getName());
+   }
 
   // For FunDecl, VarDecl and FormalParamDecl, this function returns
   // the type of the declaration.
@@ -64,7 +67,7 @@ public class SemanticAnalysis implements Visitor {
     return T;
   }
 
-  // This function returns the element type of an ArrayType AST node. 
+  // This function returns the element type of an ArrayType AST node.
   private Type typeOfArrayType(AST d) {
     assert (d != null);
     assert (d instanceof ArrayType);
@@ -158,7 +161,7 @@ public class SemanticAnalysis implements Visitor {
     return NrArgs;
   }
 
-  // Given a function declaration FunDecl, this method returns the AST for 
+  // Given a function declaration FunDecl, this method returns the AST for
   // the formal parameter nr (nr is the number of the parameter).
   // E.g., for the following function and nr=2,
   //
@@ -306,7 +309,7 @@ public class SemanticAnalysis implements Visitor {
     visit(progAST);
     // STEP 3:
     // Check Error 0
-    // 
+    //
     // Retrieve "main" from the scope stack. If it is not there (null is
     // returned, then the program does not contain a main function.
 
@@ -329,11 +332,13 @@ public class SemanticAnalysis implements Visitor {
     // name is already present in this scope.
 
     /* Start of your code: */
-
+    if(!scopeStack.enter(x.idAST.Lexeme, x)) {
+      reporter.reportError(errMsg[2], "", x.pos);
+    }
     /* End of your code */
 
     // STEP 3:
-    // Check Error 1: 
+    // Check Error 1:
     // If this function is the "main" function, then ensure that
     // x.tAST is of type int.
 
@@ -348,7 +353,7 @@ public class SemanticAnalysis implements Visitor {
     // function's compound_stmt.
 
     /* Start of your code: */
-
+    scopeStack.openScope();
     /* End of your code */
 
 
@@ -377,11 +382,13 @@ public class SemanticAnalysis implements Visitor {
     // Error 2 in that case.
 
     /* Start of your code: */
-
+    if(!scopeStack.enter(x.astIdent.Lexeme, x)) {
+      reporter.reportError(errMsg[2], "", x.pos);
+    }
     /* End of your code */
 
     // STEP 3:
-    // Check that the formal parameter is not of type void or void[]. 
+    // Check that the formal parameter is not of type void or void[].
     // Report error messages 3 and 4 respectively:
 
     /* Start of your code: */
@@ -514,7 +521,7 @@ public class SemanticAnalysis implements Visitor {
       // a function body.
 
       /* Start of your code: */
-
+      scopeStack.openScope();
       /* End of your code */
     }
     // STEP 1:
@@ -523,7 +530,8 @@ public class SemanticAnalysis implements Visitor {
     // to learn about the AST children of this node.
 
     /* Start of your code: */
-
+    x.astDecl.accept(this);
+    x.astStmt.accept(this);
     /* End of your code */
 
     // STEP 1:
@@ -531,7 +539,7 @@ public class SemanticAnalysis implements Visitor {
     // for this compound statement (even if it represents a function body).
 
     /* Start of your code: */
-
+    scopeStack.closeScope();
     /* End of your code */
   }
 
@@ -545,7 +553,10 @@ public class SemanticAnalysis implements Visitor {
     // a function.
 
     /* Start of your code: */
-
+    if (IsFunctionBlock) {
+      IsFunctionBlock = false;
+      scopeStack.closeScope();
+    }
     /* End of your code */
   }
 
@@ -588,11 +599,13 @@ public class SemanticAnalysis implements Visitor {
     // report Error 2.
 
     /* Start of your code: */
-
+    if(!scopeStack.enter(x.idAST.Lexeme, x)) {
+      reporter.reportError(errMsg[2], "", x.pos);
+    }
     /* End of your code */
 
     // STEP 3:
-    // Check that the variable is not of type void or void[]. 
+    // Check that the variable is not of type void or void[].
     // Report error messages 3 and 4 respectively:
 
     /* Start of your code: */
@@ -690,7 +703,7 @@ public class SemanticAnalysis implements Visitor {
     VarExpr VE = (VarExpr)x.idAST;
     if(!(typeOfDecl(VE.Ident.declAST) instanceof ArrayType)) {
       reporter.reportError(errMsg[12], "", x.pos);
-      x.type = StdEnvironment.errorType; 
+      x.type = StdEnvironment.errorType;
     } else {
       x.type = typeOfArrayType(x.idAST.type);
     }
@@ -818,7 +831,7 @@ public class SemanticAnalysis implements Visitor {
     // Error 19 and *return*.
     // This check detects cases like
     //  int f; f(22);
-    // where f is not a function. 
+    // where f is not a function.
 
     /* Start of your code: */
 
@@ -891,29 +904,31 @@ public class SemanticAnalysis implements Visitor {
       x.declAST = binding;
     }
     /* Start of your code: */
-
+    else {
+      reporter.reportError(errMsg[5], "", x.pos);
+    }
     /* End of your code */
   }
 
   public void visit(Operator x) {
 
-  } 
+  }
 
   public void visit(IntLiteral x) {
 
-  } 
+  }
 
   public void visit(FloatLiteral x) {
 
-  } 
+  }
 
   public void visit(BoolLiteral x) {
 
-  } 
+  }
 
   public void visit(StringLiteral x) {
 
-  } 
+  }
 
   public void visit(IntType x) {
 
