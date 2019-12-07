@@ -332,7 +332,7 @@ public class SemanticAnalysis implements Visitor {
     // name is already present in this scope.
 
     /* Start of your code: */
-    if(!scopeStack.enter(x.idAST.Lexeme, x)) {
+    if(!(scopeStack.enter(x.idAST.Lexeme, x))) {
       reporter.reportError(errMsg[2], "", x.pos);
     }
     /* End of your code */
@@ -382,7 +382,7 @@ public class SemanticAnalysis implements Visitor {
     // Error 2 in that case.
 
     /* Start of your code: */
-    if(!scopeStack.enter(x.astIdent.Lexeme, x)) {
+    if(!(scopeStack.enter(x.astIdent.Lexeme, x))) {
       reporter.reportError(errMsg[2], "", x.pos);
     }
     /* End of your code */
@@ -429,7 +429,15 @@ public class SemanticAnalysis implements Visitor {
     // If conditions (1) or (2) are violated, then you should report Error 6.
 
     /* Start of your code: */
-
+    boolean assignable = x.rAST.type.AssignableTo(x.lAST.type);
+    if(!assignable) {
+      reporter.reportError(errMsg[6], "", x.pos);
+    }
+    else {
+      if(x.lAST.type.Tequal(StdEnvironment.floatType) && x.rAST.type.Tequal(StdEnvironment.intType)) {
+        x.rAST = i2f(x.rAST);
+      }
+    }
     /* End of your code */
 
     if(!(x.lAST instanceof VarExpr) && !(x.lAST instanceof ArrayExpr)) {
@@ -445,7 +453,11 @@ public class SemanticAnalysis implements Visitor {
     // look at "for" loops, which use a similar check for the loop condition.
 
     /* Start of your code: */
-
+    if(!(x.eAST instanceof EmptyExpr)) {
+      if(!(x.eAST.type.Tequal(StdEnvironment.boolType))) {
+        reporter.reportError(errMsg[20], "", x.eAST.pos);
+      }
+    }
     /* End of your code */
     x.thenAST.accept(this);
     if(x.elseAST != null) {
@@ -461,7 +473,11 @@ public class SemanticAnalysis implements Visitor {
     // look at "for" loops which use a similar check.
 
     /* Start of your code: */
-
+    if(!(x.eAST instanceof EmptyExpr)) {
+      if(!(x.eAST.type.Tequal(StdEnvironment.boolType))) {
+        reporter.reportError(errMsg[22], "", x.eAST.pos);
+      }
+    }
     /* End of your code */
     x.stmtAST.accept(this);
   }
@@ -488,20 +504,20 @@ public class SemanticAnalysis implements Visitor {
       // statement's expression with the return type of the function.
       // Uncomment this code
       // as soon as you have finished type-checking of expressions.
-      /* START:
-         if(x.eAST.type.AssignableTo(currentFunctionReturnType)) {
+      // START:
+      if(x.eAST.type.AssignableTo(currentFunctionReturnType)) {
       // Check for type coercion: if the function returns float, but
       // the expression of the return statement is of type int, we
       // need to convert this expression to float.
-      if(currentFunctionReturnType.Tequal(StdEnvironment.floatType) &&
-      x.eAST.type.Tequal(StdEnvironment.intType)) {
-      //coercion of operand to float:
-      x.eAST = i2f(x.eAST);
-      }
+        if(currentFunctionReturnType.Tequal(StdEnvironment.floatType) &&
+          x.eAST.type.Tequal(StdEnvironment.intType)) {
+        //coercion of operand to float:
+          x.eAST = i2f(x.eAST);
+        }
       } else {
       reporter.reportError(errMsg[8], "", x.eAST.pos);
       }
-      END */
+      // END /
     }
   }
 
@@ -599,7 +615,7 @@ public class SemanticAnalysis implements Visitor {
     // report Error 2.
 
     /* Start of your code: */
-    if(!scopeStack.enter(x.idAST.Lexeme, x)) {
+    if(!(scopeStack.enter(x.idAST.Lexeme, x))) {
       reporter.reportError(errMsg[2], "", x.pos);
     }
     /* End of your code */
@@ -628,7 +644,10 @@ public class SemanticAnalysis implements Visitor {
     // Error 11 and set x.type to the error type from StdEnvironment.
     x.type = typeOfDecl (x.Ident.declAST);
     /* Start of your code: */
-
+    if(x.Ident.declAST instanceof FunDecl) {
+      reporter.reportError(errMsg[11], "", x.pos);
+      x.type = StdEnvironment.errorType;
+    }
     /* End of your code */
   }
 
@@ -657,7 +676,7 @@ public class SemanticAnalysis implements Visitor {
     // (StdEnvironment.intType).
 
     /* Start of your code: */
-
+    x.type = StdEnvironment.intType;
     /* End of your code */
   }
 
@@ -668,7 +687,7 @@ public class SemanticAnalysis implements Visitor {
     // (StdEnvironment.floatType).
 
     /* Start of your code: */
-
+    x.type = StdEnvironment.floatType;
     /* End of your code */
   }
 
@@ -679,7 +698,7 @@ public class SemanticAnalysis implements Visitor {
     // (StdEnvironment.boolType).
 
     /* Start of your code: */
-
+    x.type = StdEnvironment.boolType;
     /* End of your code */
   }
 
@@ -690,7 +709,7 @@ public class SemanticAnalysis implements Visitor {
     // (StdEnvironment.stringType).
 
     /* Start of your code: */
-
+    x.type = StdEnvironment.stringType;
     /* End of your code */
   }
 
@@ -753,7 +772,14 @@ public class SemanticAnalysis implements Visitor {
         // This is the dual case to "int x float" above.
 
         /* Start of your code: */
-
+        //coercion of right operand to float:
+        x.rAST = i2f(x.rAST);
+        x.oAST.type = StdEnvironment.floatType;
+        if(HasBoolReturnType(x.oAST)) {
+          x.type = StdEnvironment.boolType;
+        } else {
+          x.type = StdEnvironment.floatType;
+        }
         /* End of your code */
         return;
       }
@@ -799,6 +825,24 @@ public class SemanticAnalysis implements Visitor {
     // slightly more complicated case.
 
     /* Start of your code: */
+    if(x.eAST.type.Tequal(StdEnvironment.intType) ||
+      x.eAST.type.Tequal(StdEnvironment.floatType)) {
+      if(HasIntOrFloatArgs(x.oAST)) {
+        x.oAST.type = x.eAST.type;
+        x.type = x.eAST.type;
+        return;
+      }
+    }
+    if(x.eAST.type.Tequal(StdEnvironment.boolType)) {
+      if(HasBoolArgs(x.oAST)) {
+        x.type = StdEnvironment.boolType;
+        x.oAST.type = StdEnvironment.intType;
+        return;
+      }
+    }
+    x.oAST.type = StdEnvironment.errorType;
+    x.type = StdEnvironment.errorType;
+    reporter.reportError(errMsg[10], "", x.pos);
 
     /* End of your code */
   }
@@ -845,7 +889,16 @@ public class SemanticAnalysis implements Visitor {
     // the number of formal and actual parameters.
 
     /* Start of your code: */
-
+    int NrOfFormalParams = GetNrOfFormalParams(F);
+    int NrOfActualParams = GetNrOfActualParams(x);
+    if(NrOfFormalParams != NrOfActualParams) {
+      if(NrOfActualParams > NrOfFormalParams) {
+        reporter.reportError(errMsg[23], "", x.pos);
+      }
+      else {
+        reporter.reportError(errMsg[24], "", x.pos);
+      }
+    }
     /* End of your code */
 
     // STEP 2:
@@ -870,18 +923,25 @@ public class SemanticAnalysis implements Visitor {
      * of the "for" loop also.
 
      * Start of your code:
-
-     int NrFormalParams = GetNrOfFormalParams(F);
-     for (int i = 1; i<= NrFormalParams; i++) {
-     FormalParamDecl Form = GetFormalParam(F, i);
-     ActualParam Act = GetActualParam(x, i);
-     Type FormalT = Form.astType;
-     Type ActualT = Act.pAST.type;
      */
 
+    for (int i = 1, j = 1; i<= NrOfFormalParams && j <= NrOfActualParams; i++, j++) {
+      FormalParamDecl Form = GetFormalParam(F, i);
+      ActualParam Act = GetActualParam(x, i);
+      Type FormalT = Form.astType;
+      Type ActualT = Act.pAST.type;
+      if(ActualT.AssignableTo(FormalT)) {
+        if(ActualT.Tequal(StdEnvironment.intType) && FormalT.Tequal(StdEnvironment.floatType)) {
+          Act.pAST = i2f(Act.pAST);
+        }
+      }
+      else {
+        reporter.reportError(errMsg[25], "", Act.pos);
+      }
 
 
-    //}
+
+    }
     /* End of your code */
 
     // set the return type of the call expression to the return type of
