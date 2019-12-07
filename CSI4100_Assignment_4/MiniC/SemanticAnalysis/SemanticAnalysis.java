@@ -245,6 +245,22 @@ public class SemanticAnalysis implements Visitor {
      }
    */
 
+   private int GetNrOfExpr(ExprSequence E) {
+     int NrExpr = 1;
+     Expr rE = E.rAST;
+     assert ((rE instanceof EmptyExpr) ||
+         (rE instanceof ExprSequence));
+     if(rE instanceof EmptyExpr)
+       return 1;
+     while (rE instanceof ExprSequence) {
+       NrExpr++;
+       rE = ((ExprSequence) rE).rAST;
+       assert ((rE instanceof EmptyExpr) ||
+           (rE instanceof ExprSequence));
+     }
+     return NrExpr;
+   }
+
   // This array of strings contains the error messages that we generate
   // for errors detected during semantic analysis. These messages are
   // output using the ErrorReporter.
@@ -608,7 +624,30 @@ public class SemanticAnalysis implements Visitor {
         // Perform i2f coercion if necessary.
 
         /* Start of your code: */
-
+        if(!(x.eAST instanceof ExprSequence)) {
+          reporter.reportError(errMsg[15], "", x.pos);
+        }
+        else {
+          int NrExpr = GetNrOfExpr((ExprSequence)(x.eAST));
+          int range = ((ArrayType)(x.tAST)).GetRange();
+          if(NrExpr != range) {
+            reporter.reportError(errMsg[16], "", x.pos);
+          }
+          Type T = ((ArrayType)(x.tAST)).astType;
+          Expr rE = x.eAST;
+          while(rE instanceof ExprSequence) {
+            Expr lE = ((ExprSequence)rE).lAST;
+            if(lE.type.AssignableTo(T)) {
+              if(lE.type.Tequal(StdEnvironment.intType) && T.Tequal(StdEnvironment.floatType)) {
+                lE = i2f(lE);
+              }
+            }
+            else {
+              reporter.reportError(errMsg[13], "", lE.pos);
+            }
+            rE = ((ExprSequence)rE).rAST;
+          }
+        }
         /* End of your code */
       } else {
         //STEP 4:
@@ -618,7 +657,17 @@ public class SemanticAnalysis implements Visitor {
         // Perform i2f coercion if necessary.
 
         /* Start of your code: */
-
+        if(x.eAST instanceof ExprSequence) {
+            reporter.reportError(errMsg[14], "", x.pos);
+        }
+        else if(x.eAST.type.AssignableTo(x.tAST)) {
+          if(x.eAST.type.Tequal(StdEnvironment.intType) && x.tAST.Tequal(StdEnvironment.floatType)) {
+            x.eAST = i2f(x.eAST);
+          }
+        }
+        else {
+          reporter.reportError(errMsg[6], "", x.pos);
+        }
         /* End of your code */
       }
     }
