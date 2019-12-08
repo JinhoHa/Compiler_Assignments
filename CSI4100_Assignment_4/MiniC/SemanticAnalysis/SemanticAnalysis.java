@@ -362,7 +362,7 @@ public class SemanticAnalysis implements Visitor {
     // x.tAST is of type int.
 
     /* Start of your code: */
-    if(x.idAST.Lexeme == "main") {
+    if(x.idAST.Lexeme.equals("main")) {
       if(!(x.tAST.Tequal(StdEnvironment.intType))) {
         reporter.reportError(errMsg[1], "", x.tAST.pos);
       }
