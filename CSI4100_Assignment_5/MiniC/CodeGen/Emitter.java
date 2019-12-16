@@ -17,7 +17,7 @@ public class Emitter implements Visitor {
   private int MaxOperandStackSize = 150;
   // Upper bound for the maximum operand stack height for a MiniC function.
   // The actual stack height can be determined by interpreting the function's
-  // bytecode. 
+  // bytecode.
   private int LabelIndent;
   private boolean isMain; // true if we are generating code for "main".
   private boolean GlobalScope; // true if we are in the outermost "global" scope.
@@ -46,7 +46,7 @@ public class Emitter implements Visitor {
         outfile= new String(namepart);
         outfile = outfile.concat(".j");
       }
-      // Create output file: 
+      // Create output file:
       fstream = new FileWriter(outfile);
       out = new BufferedWriter(fstream);
       indent = 0;
@@ -257,7 +257,7 @@ public class Emitter implements Visitor {
       assert (d.isGlobal());
       Type T= typeOfDecl (D);
       emit (".field static " + D.idAST.Lexeme + " "
-          + getTypeDescriptorLabel(T));         
+          + getTypeDescriptorLabel(T));
     }
   }
 
@@ -298,7 +298,7 @@ public class Emitter implements Visitor {
   // Emit a class initializer method for the global MiniC variables.
   // Global MiniC variables correspond to static Java class variables
   // in our code generation model. Our MiniC assembly code needs one
-  // class initializer where all class variables are initialized. 
+  // class initializer where all class variables are initialized.
   private void emitClassInitializer(Decl d) {
     emit ("\n.method static <clinit>()V");
     indent++;
@@ -414,7 +414,7 @@ public class Emitter implements Visitor {
     return NrArgs;
   }
 
-  // Given a function declaration FunDecl, this method returns the AST for 
+  // Given a function declaration FunDecl, this method returns the AST for
   // the formal parameter nr (nr is the number of the parameter).
   // E.g., for the following function and nr=2,
   //
@@ -459,7 +459,7 @@ public class Emitter implements Visitor {
     emit("; MiniC v. 1.0");
     emit(".class public " + ClassName);
     emit(".super java/lang/Object");
-    //emit("; Program");
+    emit("; Program");
     if(x.D instanceof VarDecl) {
       ((VarDecl) x.D).setGlobal();
     }
@@ -470,7 +470,7 @@ public class Emitter implements Visitor {
   }
 
   public void visit(EmptyDecl x) {
-    //emit("; EmptyDecl");
+    emit("; EmptyDecl");
   }
 
   public void visit(FunDecl x) {
@@ -522,21 +522,21 @@ public class Emitter implements Visitor {
   }
 
   public void visit(FormalParamDecl x) {
-    //emit("; FormalParamDecl");
+    emit("; FormalParamDecl");
     //TBD: here you need to allocate a new local variable index to the
     //     formal parameter.
     //     Relevant: x.index, frame.getNewLocalVarIndex();
-
+    x.index = frame.getNewLocalVarIndex();
   }
 
   public void visit(FormalParamDeclSequence x) {
-    //emit("; FormalParamDeclSequence");
+    emit("; FormalParamDeclSequence");
     x.lAST.accept(this);
     x.rAST.accept(this);
   }
 
   public void visit(EmptyFormalParamDecl x) {
-    //emit("; EmptyFormalParamDecl");
+    emit("; EmptyFormalParamDecl");
   }
 
   public void visit(StmtSequence x) {
@@ -550,7 +550,7 @@ public class Emitter implements Visitor {
     x.rAST.accept(this);
     if (x.lAST instanceof VarExpr) {
       VarExpr V = (VarExpr) x.lAST;
-      Decl D = (Decl) V.Ident.declAST; 
+      Decl D = (Decl) V.Ident.declAST;
       Type T = typeOfDecl(D);
       //TBD: here you have to distinguish between local and global MiniC variables.
       //     Local variables are kept in the JVM's local variable array.
@@ -565,6 +565,17 @@ public class Emitter implements Visitor {
       //                         emitISTORE()
       //                         emitFSTORE()
       //
+      if (D.isGlobal()) {
+        emitStaticVariableReference(V.Ident, T, true);
+      }
+      else {
+        if (T.Tequal(StdEnvironment.intType)) {
+          emitISTORE(D.index);
+        }
+        else {
+          emitFSTORE(D.index);
+        }
+      }
 
     } else {
       assert(false); // Arrays not implemented.
@@ -624,11 +635,11 @@ public class Emitter implements Visitor {
   }
 
   public void visit(EmptyStmt x) {
-    //emit("; EmptyStmt");
+    emit("; EmptyStmt");
   }
 
   public void visit(EmptyCompoundStmt x) {
-    //emit("; EmptyCompoundStmt");
+    emit("; EmptyCompoundStmt");
   }
 
   public void visit(CallStmt x) {
@@ -700,7 +711,7 @@ public class Emitter implements Visitor {
     x.rAST.accept(this);
     if (x.lAST instanceof VarExpr) {
       VarExpr V = (VarExpr) x.lAST;
-      Decl D = (Decl) V.Ident.declAST; 
+      Decl D = (Decl) V.Ident.declAST;
       Type T = typeOfDecl(D);
       if(D.isGlobal()) {
         emitStaticVariableReference(V.Ident, typeOfDecl(V.Ident.declAST), true);
@@ -713,7 +724,7 @@ public class Emitter implements Visitor {
         } else {
           assert(false);
         }
-      } 
+      }
     } else {
       assert(false); // Arrays not implemented.
     }
@@ -742,7 +753,7 @@ public class Emitter implements Visitor {
   }
 
   public void visit(BinaryExpr x) {
-    //emit("; BinaryExpr");
+    emit("; BinaryExpr");
     String Op = new String(x.oAST.Lexeme);
     if(Op.equals("&&")) {
       int L1 = frame.getNewLabel();
@@ -770,7 +781,7 @@ public class Emitter implements Visitor {
   }
 
   public void visit(UnaryExpr x) {
-    //emit("; UnaryExpr");
+    emit("; UnaryExpr");
     String Op = new String(x.oAST.Lexeme);
     x.eAST.accept(this);
     // Here we treat the following cases:
@@ -845,54 +856,59 @@ public class Emitter implements Visitor {
 
   public void visit(Operator x) {
     // emit("; Operator: " + x.Lexeme);
-  } 
+  }
 
   public void visit(IntLiteral x) {
-    //emit("; IntLiteral: " + x.Lexeme + "\n");
+    emit("; IntLiteral: " + x.Lexeme + "\n");
     //TBD: here you have to emit an ICONST instruction to load the integer literal
     //     onto the JVM stack. (see emitICONST).
-
-  } 
+    emitICONST(x.GetValue());
+  }
 
   public void visit(FloatLiteral x) {
-    //emit("; FloatLiteral: " + x.Lexeme + "\n");
+    emit("; FloatLiteral: " + x.Lexeme + "\n");
     //TBD: same for float
-
-  } 
+    emitFCONST(x.GetValue());
+  }
 
   public void visit(BoolLiteral x) {
-    //emit("; BoolLiteral: " + x.Lexeme + "\n");
+    emit("; BoolLiteral: " + x.Lexeme + "\n");
     //TBD: and bool...
-
-  } 
+    if((x.Lexeme).equals("true")) {
+      emitICONST(1);
+    }
+    else {
+      emitICONST(0);
+    }
+  }
 
   public void visit(StringLiteral x) {
-    //emit("; StringLiteral: " + x.Lexeme);
+    emit("; StringLiteral: " + x.Lexeme);
     emit(JVM.LDC + " \"" + x.Lexeme +"\"");
-  } 
+  }
 
   public void visit(IntType x) {
-    //emit("; IntType");
+    emit("; IntType");
   }
 
   public void visit(FloatType x) {
-    //emit("; FloatType");
+    emit("; FloatType");
   }
 
   public void visit(BoolType x) {
-    //emit("; BoolType");
+    emit("; BoolType");
   }
 
   public void visit(StringType x) {
-    //emit("; StringType");
+    emit("; StringType");
   }
 
   public void visit(VoidType x) {
-    //emit("; VoidType");
+    emit("; VoidType");
   }
 
   public void visit(ArrayType x) {
-    //emit("; ArrayType");
+    emit("; ArrayType");
   }
 
   public void visit(ErrorType x) {
