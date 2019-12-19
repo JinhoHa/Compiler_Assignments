@@ -729,7 +729,7 @@ public class Emitter implements Visitor {
     Type T = typeOfDecl (D);
     //TBD: your code goes here...
     if(D.isGlobal()) {
-      emitStaticVariableReference(x.Ident, T, false)
+      emitStaticVariableReference(x.Ident, T, false);
     }
     else {
       if(T.Tequal(StdEnvironment.intType) || T.Tequal(StdEnvironment.boolType)) {
@@ -815,6 +815,8 @@ public class Emitter implements Visitor {
     if(Op.equals("||")) {
       //TBD: implement || short circuit evaluation.
       //     Similar to &&, you may use a Java example to figure it out..
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
       x.lAST.accept(this);
       emit(JVM.IFNE + " " + getLabelString(L1));
       x.rAST.accept(this);
@@ -893,7 +895,7 @@ public class Emitter implements Visitor {
       }
       else if(T.Tequal(StdEnvironment.floatType)) {
         emit("fcmpl");
-        emit(JVM.IFGT + " " getLabelString(L1));
+        emit(JVM.IFGT + " " + getLabelString(L1));
         emitICONST(0);
         emit(JVM.GOTO + " " + getLabelString(L2));
         emitLabel(L1);
@@ -914,7 +916,7 @@ public class Emitter implements Visitor {
       }
       else if(T.Tequal(StdEnvironment.floatType)) {
         emit("fcmpl");
-        emit(JVM.IFGE + " " getLabelString(L1));
+        emit(JVM.IFGE + " " + getLabelString(L1));
         emitICONST(0);
         emit(JVM.GOTO + " " + getLabelString(L2));
         emitLabel(L1);
@@ -935,7 +937,7 @@ public class Emitter implements Visitor {
       }
       else if(T.Tequal(StdEnvironment.floatType)) {
         emit("fcmpg");
-        emit(JVM.IFLT + " " getLabelString(L1));
+        emit(JVM.IFLT + " " + getLabelString(L1));
         emitICONST(0);
         emit(JVM.GOTO + " " + getLabelString(L2));
         emitLabel(L1);
@@ -956,7 +958,7 @@ public class Emitter implements Visitor {
       }
       else if(T.Tequal(StdEnvironment.floatType)) {
         emit("fcmpg");
-        emit(JVM.IFLE + " " getLabelString(L1));
+        emit(JVM.IFLE + " " + getLabelString(L1));
         emitICONST(0);
         emit(JVM.GOTO + " " + getLabelString(L2));
         emitLabel(L1);
@@ -977,7 +979,7 @@ public class Emitter implements Visitor {
       }
       else if(T.Tequal(StdEnvironment.floatType)) {
         emit("fcmpl");
-        emit(JVM.IFEQ + " " getLabelString(L1));
+        emit(JVM.IFEQ + " " + getLabelString(L1));
         emitICONST(0);
         emit(JVM.GOTO + " " + getLabelString(L2));
         emitLabel(L1);
@@ -998,7 +1000,7 @@ public class Emitter implements Visitor {
       }
       else if(T.Tequal(StdEnvironment.floatType)) {
         emit("fcmpl");
-        emit(JVM.IFNE + " " getLabelString(L1));
+        emit(JVM.IFNE + " " + getLabelString(L1));
         emitICONST(0);
         emit(JVM.GOTO + " " + getLabelString(L2));
         emitLabel(L1);
@@ -1031,10 +1033,10 @@ public class Emitter implements Visitor {
       ;
     }
     else if(Op.equals("-")) {
-      if(x.oAST.Type.Tequal(StdEnvironment.intType)) {
+      if(x.oAST.type.Tequal(StdEnvironment.intType)) {
         emit(JVM.INEG);
       }
-      else if(x.oAST.Type.Tequal(StdEnvironment.floatType)) {
+      else if(x.oAST.type.Tequal(StdEnvironment.floatType)) {
         emit(JVM.FNEG);
       }
       else {
@@ -1050,6 +1052,9 @@ public class Emitter implements Visitor {
       emitLabel(L1);
       emitICONST(0);
       emitLabel(L2);
+    }
+    else if(Op.equals("i2f")) {
+      emit(JVM.I2F);
     }
   }
 
@@ -1092,7 +1097,7 @@ public class Emitter implements Visitor {
       //TBD: in case of an instance method, you need emit an JVM.INVOKEVIRTUAL instruction.
       //     the name of the function consists of <ClassName>/<functionname><functiondescriptor>.
       //      Relevant variables/functions: see above for static methods.
-      emit(JVM.INVOKEVIRTUAL + ClassName + "/" +
+      emit(JVM.INVOKEVIRTUAL + " " + ClassName + "/" +
           x.idAST.Lexeme + getDescriptor(F));
     }
   }
@@ -1112,20 +1117,21 @@ public class Emitter implements Visitor {
   }
 
   public void visit(IntLiteral x) {
-    emit("; IntLiteral: " + x.Lexeme + "\n");
+    // emit("; IntLiteral: " + x.Lexeme + "\n");
     //TBD: here you have to emit an ICONST instruction to load the integer literal
     //     onto the JVM stack. (see emitICONST).
     emitICONST(x.GetValue());
   }
 
   public void visit(FloatLiteral x) {
-    emit("; FloatLiteral: " + x.Lexeme + "\n");
+    // emit("; FloatLiteral: " + x.Lexeme + "\n");
     //TBD: same for float
-    emitFCONST(x.GetValue());
+    float value = Float.parseFloat(x.Lexeme);
+    emitFCONST(value);
   }
 
   public void visit(BoolLiteral x) {
-    emit("; BoolLiteral: " + x.Lexeme + "\n");
+    // emit("; BoolLiteral: " + x.Lexeme + "\n");
     //TBD: and bool...
     if((x.Lexeme).equals("true")) {
       emitICONST(1);
