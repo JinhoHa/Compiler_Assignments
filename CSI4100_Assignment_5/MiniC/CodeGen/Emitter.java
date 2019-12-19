@@ -593,20 +593,34 @@ public class Emitter implements Visitor {
     int L1 = frame.getNewLabel();
     int L2 = frame.getNewLabel();
     //TBD: your code goes here...
+    emit(JVM.IFEQ + " " + getLabelString(L1));
+
     x.thenAST.accept(this);
     //TBD: your code goes here...
+    emit(JVM.GOTO + " " + getLabelString(L2));
+    emitLabel(L1);
+
     if(x.elseAST != null) {
       x.elseAST.accept(this);
     }
     //TBD: your code goes here...
-
+    emitLabel(L2);
   }
 
   public void visit(WhileStmt x) {
     emit("; WhileStmt, line " + x.pos.StartLine);
     // You should apply the template for while loops from the lecture slides.
     // TBD:
-
+    int L1 = frame.getNewLabel();
+    int L2 = frame.getNewLabel();
+    emitLabel(L1);
+    x.eAST.accept(this);
+    emit(JVM.IFEQ + " " + getLabelString(L2));
+    if(x.stmtAST != null) {
+      x.stmtAST.accept(this);
+    }
+    emit(JVM.GOTO + " " + getLabelString(L1));
+    emitLabel(L2);
   }
 
   public void visit(ForStmt x) {
@@ -616,6 +630,7 @@ public class Emitter implements Visitor {
     // is done there.  Using the classfileanalyzer is described in the
     // Assignment 5 spec.
     // TBD:
+
 
   }
 
@@ -662,7 +677,10 @@ public class Emitter implements Visitor {
     //                        x.tAST.accept(this);
     //                        x.idAST.accept(this);
     //                        x.eAST.accept(this);
-
+    x.index = frame.getNewLocalVarIndex();
+    x.tAST.accept(this);
+    x.idAST.accept(this);
+    x.eAST.accept(this);
   }
 
   public void visit(DeclSequence x){
@@ -701,7 +719,20 @@ public class Emitter implements Visitor {
     Decl D = (Decl) x.Ident.declAST;
     Type T = typeOfDecl (D);
     //TBD: your code goes here...
-
+    if(D.isGlobal()) {
+      emitStaticVariableReference(x.Ident, T, false)
+    }
+    else {
+      if(T.Tequal(StdEnvironment.intType) || T.Tequal(StdEnvironment.boolType)) {
+        emitILOAD(D.index);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emitFLOAD(D.index);
+      }
+      else {
+        assert(false);
+      }
+    }
   }
 
   public void visit(AssignExpr x) {
@@ -760,13 +791,31 @@ public class Emitter implements Visitor {
       int L2 = frame.getNewLabel();
       //TBD: implement the code template for && short circuit evaluation
       //     from the lecture slides.
+      x.lAST.accept(this);
+      emit(JVM.IFEQ + " " + getLabelString(L1));
+      x.rAST.accept(this);
+      emit(JVM.IFEQ + " " + getLabelString(L1));
+      emitICONST(1);
+      emit(JVM.GOTO + " " + getLabelString(L2));
+      emitLabel(L1);
+      emitICONST(0);
+      emitLabel(L2);
 
       return;
     }
     if(Op.equals("||")) {
       //TBD: implement || short circuit evaluation.
       //     Similar to &&, you may use a Java example to figure it out..
-
+      x.lAST.accept(this);
+      emit(JVM.IFNE + " " + getLabelString(L1));
+      x.rAST.accept(this);
+      emit(JVM.IFNE + " " + getLabelString(L1));
+      emitICONST(0);
+      emit(JVM.GOTO + " " + getLabelString(L2));
+      emitLabel(L1);
+      emitICONST(1);
+      emitLabel(L2);
+      
       return;
     }
     /*
