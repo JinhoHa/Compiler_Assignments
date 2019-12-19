@@ -630,7 +630,16 @@ public class Emitter implements Visitor {
     // is done there.  Using the classfileanalyzer is described in the
     // Assignment 5 spec.
     // TBD:
-
+    int L1 = frame.getNewLabel();
+    int L2 = frame.getNewLabel();
+    x.e1AST.accept(this);
+    emitLabel(L2);
+    x.e2AST.accept(this);
+    emit(JVM.IFEQ + " " + getLabelString(L1));
+    x.stmtAST.accept(this);
+    x.e3AST.accept(this);
+    emit(JVM.GOTO + " " + getLabelString(L2));
+    emitLabel(L1);
 
   }
 
@@ -815,7 +824,7 @@ public class Emitter implements Visitor {
       emitLabel(L1);
       emitICONST(1);
       emitLabel(L2);
-      
+
       return;
     }
     /*
@@ -826,6 +835,177 @@ public class Emitter implements Visitor {
     x.lAST.accept(this);
     x.rAST.accept(this);
     //TBD:
+    Type T = x.oAST.type;
+    if(Op.equals("+")) {
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IADD);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit(JVM.FADD);
+      }
+      else {
+        assert(false);
+      }
+    }
+    else if(Op.equals("-")) {
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.ISUB);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit(JVM.FSUB);
+      }
+      else {
+        assert(false);
+      }
+    }
+    else if(Op.equals("*")) {
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IMUL);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit(JVM.FMUL);
+      }
+      else {
+        assert(false);
+      }
+    }
+    else if(Op.equals("*")) {
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IDIV);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit(JVM.FDIV);
+      }
+      else {
+        assert(false);
+      }
+    }
+    else if(Op.equals(">")) {
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IF_ICMPGT + " " + getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit("fcmpl");
+        emit(JVM.IFGT + " " getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+    }
+    else if(Op.equals(">=")) {
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IF_ICMPGE + " " + getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit("fcmpl");
+        emit(JVM.IFGE + " " getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+    }
+    else if(Op.equals("<")) {
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IF_ICMPLT + " " + getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit("fcmpg");
+        emit(JVM.IFLT + " " getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+    }
+    else if(Op.equals("<=")) {
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IF_ICMPLE + " " + getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit("fcmpg");
+        emit(JVM.IFLE + " " getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+    }
+    else if(Op.equals("==")) {
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IF_ICMPEQ + " " + getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit("fcmpl");
+        emit(JVM.IFEQ + " " getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+    }
+    else if(Op.equals("!=")) {
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
+      if(T.Tequal(StdEnvironment.intType)) {
+        emit(JVM.IF_ICMPNE + " " + getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+      else if(T.Tequal(StdEnvironment.floatType)) {
+        emit("fcmpl");
+        emit(JVM.IFNE + " " getLabelString(L1));
+        emitICONST(0);
+        emit(JVM.GOTO + " " + getLabelString(L2));
+        emitLabel(L1);
+        emitICONST(1);
+        emitLabel(L2);
+      }
+    }
 
   }
 
@@ -847,7 +1027,30 @@ public class Emitter implements Visitor {
     //              iconst_0
     //           Label2:
     //TBD:
-
+    if(Op.equals("+")) {
+      ;
+    }
+    else if(Op.equals("-")) {
+      if(x.oAST.Type.Tequal(StdEnvironment.intType)) {
+        emit(JVM.INEG);
+      }
+      else if(x.oAST.Type.Tequal(StdEnvironment.floatType)) {
+        emit(JVM.FNEG);
+      }
+      else {
+        assert(false);
+      }
+    }
+    else if(Op.equals("!")) {
+      int L1 = frame.getNewLabel();
+      int L2 = frame.getNewLabel();
+      emit(JVM.IFNE + " " + getLabelString(L1));
+      emitICONST(1);
+      emit(JVM.GOTO + " " + getLabelString(L2));
+      emitLabel(L1);
+      emitICONST(0);
+      emitLabel(L2);
+    }
   }
 
   public void visit(EmptyExpr x) {
@@ -889,7 +1092,8 @@ public class Emitter implements Visitor {
       //TBD: in case of an instance method, you need emit an JVM.INVOKEVIRTUAL instruction.
       //     the name of the function consists of <ClassName>/<functionname><functiondescriptor>.
       //      Relevant variables/functions: see above for static methods.
-
+      emit(JVM.INVOKEVIRTUAL + ClassName + "/" +
+          x.idAST.Lexeme + getDescriptor(F));
     }
   }
 
